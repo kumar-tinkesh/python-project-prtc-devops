@@ -9,7 +9,6 @@ import os
 import sys
 from datetime import datetime
 
-sys.path.insert(0, os.path.dirname(__file__))
 from claude_client import ClaudeDocumentationClient, DocumentationRequest
 
 

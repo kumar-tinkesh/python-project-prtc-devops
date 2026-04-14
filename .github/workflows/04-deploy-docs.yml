@@ -1,7 +1,8 @@
 name: 04 - Deploy Documentation (Docs Repo)
 
-# This workflow runs IN the docs repository, not the main repo
-# Copy this to your-docs-repo/.github/workflows/deploy.yml
+# ⚠️  IMPORTANT: This workflow should run in the DOCS REPOSITORY, not the main repo
+# Move this file to: your-docs-repo/.github/workflows/deploy.yml
+# Delete this file from the main repo after setting up the docs repo
 
 on:
   push:
@@ -38,10 +39,22 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       
+      - name: Check for mkdocs.yml
+        run: |
+          if [ ! -f "mkdocs.yml" ]; then
+            echo "❌ ERROR: mkdocs.yml not found!"
+            echo "This workflow should run in the docs repository."
+            echo "Please move this workflow to your docs repo."
+            exit 1
+          fi
+          echo "✅ mkdocs.yml found"
+      
       - name: Install dependencies
         run: |
+          echo "📦 Installing MkDocs..."
           pip install mkdocs-material
           pip install -r requirements-docs.txt 2>/dev/null || true
+          echo "✅ Dependencies installed"
       
       - name: Build documentation
         run: |
