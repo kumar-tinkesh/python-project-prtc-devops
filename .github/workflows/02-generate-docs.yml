@@ -47,6 +47,20 @@ jobs:
           mkdir -p reports
           echo "Using manually provided report"
       
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          echo "🔍 Checking required secrets..."
+          
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "❌ Missing secret: ANTHROPIC_API_KEY"
+            echo "Please add this secret at:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+          
+          echo "✅ Secret found: ANTHROPIC_API_KEY"
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -54,13 +68,16 @@ jobs:
       
       - name: Install dependencies
         run: |
+          echo "📦 Installing Python dependencies..."
           pip install pyyaml requests anthropic
+          echo "✅ Dependencies installed"
       
       - name: Generate technical documentation
         id: gen-tech-docs
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
+          echo "🤖 Starting AI documentation generation..."
           mkdir -p docs/generated
           
           if [ ! -f reports/feature_report.json ]; then
