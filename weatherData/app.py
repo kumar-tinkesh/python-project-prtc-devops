@@ -59,5 +59,3 @@ def get_weather_data(city_name, api_key):
 
 if __name__=="__main__":
     app.run(debug=True)
-
-# this is the change
