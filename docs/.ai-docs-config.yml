@@ -383,7 +383,7 @@ ai:
 
 # Docs Sync Configuration
 docs_sync:
-    target_repo: "kumar-tinkesh/python-projects-docs"
+  target_repo: "kumar-tinkesh/python-projects-docs"
   target_branch: "main"
   create_prs: true
   auto_merge_threshold: "low_impact"
