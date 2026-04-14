@@ -1,0 +1,393 @@
+# Automated Documentation Pipeline Configuration
+# Maps files to features for your Python learning projects
+
+version: "1.0"
+
+# Feature Mapping: Files → Features
+feature_mapping:
+  patterns:
+    # Flask Web Applications
+    - pattern: "**/weatherData/**"
+      features: ["weather-app", "flask-apps"]
+    - pattern: "**/weatherData/*.py"
+      features: ["weather-app"]
+    
+    - pattern: "**/stockapp/**"
+      features: ["stock-app", "flask-apps"]
+    - pattern: "**/stockapp/*.py"
+      features: ["stock-app"]
+    
+    - pattern: "**/EPOS RestAPI Flask/**"
+      features: ["rest-api", "flask-apps"]
+    - pattern: "**/EPOS RestAPI Flask/*.py"
+      features: ["rest-api"]
+    
+    # FastAPI Applications
+    - pattern: "**/fastAPICrud/**"
+      features: ["fastapi-crud", "fastapi-apps"]
+    - pattern: "**/fastAPICrud/**/*.py"
+      features: ["fastapi-crud"]
+    
+    # Django Applications
+    - pattern: "**/adsearch/**"
+      features: ["ad-search", "django-apps"]
+    - pattern: "**/adsearch/**/*.py"
+      features: ["ad-search"]
+    
+    # Games
+    - pattern: "**/wordle/**"
+      features: ["wordle-game", "games"]
+    - pattern: "**/wordle/*.py"
+      features: ["wordle-game"]
+    
+    - pattern: "**/Meteor Shooter game/**"
+      features: ["meteor-shooter", "games"]
+    - pattern: "**/Meteor Shooter game/*.py"
+      features: ["meteor-shooter"]
+    
+    - pattern: "**/secretNumber/**"
+      features: ["number-guessing", "games"]
+    - pattern: "**/secretNumber/*.py"
+      features: ["number-guessing"]
+    
+    # Utilities & Tools
+    - pattern: "**/Freight-Manager/**"
+      features: ["freight-manager", "sqlite-apps"]
+    - pattern: "**/Freight-Manager/**/*.py"
+      features: ["freight-manager"]
+    
+    - pattern: "**/libraryMgmtSystem/**"
+      features: ["library-system", "sqlite-apps"]
+    - pattern: "**/libraryMgmtSystem/**/*.py"
+      features: ["library-system"]
+    
+    - pattern: "**/loginSystem/**"
+      features: ["auth-system", "utilities"]
+    - pattern: "**/loginSystem/*.py"
+      features: ["auth-system"]
+    
+    - pattern: "**/Customer Cash Register/**"
+      features: ["cash-register", "utilities"]
+    - pattern: "**/Customer Cash Register/**/*.py"
+      features: ["cash-register"]
+    
+    - pattern: "**/blockchain/**"
+      features: ["blockchain-demo", "utilities"]
+    
+    - pattern: "**/Matrix Terminal ScreenSaver/**"
+      features: ["matrix-screensaver", "utilities"]
+    
+    # API Integrations
+    - pattern: "**/nasaImagesAPI/**"
+      features: ["nasa-api", "api-integrations"]
+    - pattern: "**/nasaImagesAPI/*.py"
+      features: ["nasa-api"]
+    
+    - pattern: "**/redditAPI/**"
+      features: ["reddit-api", "api-integrations"]
+    - pattern: "**/redditAPI/*.py"
+      features: ["reddit-api"]
+    
+    - pattern: "**/cryptotracker/**"
+      features: ["crypto-tracker", "api-integrations"]
+    - pattern: "**/cryptotracker/*.py"
+      features: ["crypto-tracker"]
+    
+    - pattern: "**/countrynewsapp/**"
+      features: ["news-app", "api-integrations"]
+    
+    - pattern: "**/CityWeather/**"
+      features: ["city-weather", "api-integrations"]
+    
+    - pattern: "**/openWeatherAutomate/**"
+      features: ["weather-automation", "api-integrations"]
+    
+    # Web Scraping
+    - pattern: "**/githubRepoScraping/**"
+      features: ["github-scraper", "web-scraping"]
+    - pattern: "**/githubRepoScraping/*.py"
+      features: ["github-scraper"]
+    
+    - pattern: "**/googleFinanceScraping/**"
+      features: ["finance-scraper", "web-scraping"]
+    
+    - pattern: "**/web-checker/**"
+      features: ["web-checker", "web-scraping"]
+    
+    - pattern: "**/urlScraper.py"
+      features: ["url-scraper", "web-scraping"]
+    
+    # Data & Algorithms
+    - pattern: "**/Python Projects/python-ds-algo/**"
+      features: ["data-structures", "algorithms"]
+    - pattern: "**/Python Projects/**/*.py"
+      features: ["data-structures"]
+    
+    - pattern: "**/caeser-cipher/**"
+      features: ["encryption", "algorithms"]
+    - pattern: "**/caeser-cipher/*.py"
+      features: ["encryption"]
+    
+    - pattern: "**/numberGussingGame/**"
+      features: ["number-guessing", "algorithms"]
+    
+    # Other Projects
+    - pattern: "**/Geo-Location/**"
+      features: ["geo-location", "api-integrations"]
+    
+    - pattern: "**/brandgenrator/**"
+      features: ["brand-generator", "utilities"]
+    
+    - pattern: "**/loanCalculator/**"
+      features: ["loan-calculator", "utilities"]
+    
+    - pattern: "**/stockProfileFinder/**"
+      features: ["stock-profile", "utilities"]
+    
+    # Config files
+    - pattern: "**/config.ini"
+      features: ["configuration"]
+    - pattern: "**/requirements.txt"
+      features: ["dependencies"]
+
+# Feature Definitions
+features:
+  # Flask Applications
+  weather-app:
+    name: "Weather Dashboard App"
+    description: "Flask weather dashboard using OpenWeatherMap API. Demonstrates API integration, Flask templating, and data visualization."
+    doc_path: "docs/features/weather-app.md"
+    priority: "medium"
+    
+  stock-app:
+    name: "Stock Profile Finder"
+    description: "Flask stock analysis app using Financial Modeling Prep API. Shows financial data visualization and API handling."
+    doc_path: "docs/features/stock-app.md"
+    priority: "medium"
+    
+  rest-api:
+    name: "Restaurant EPOS REST API"
+    description: "Flask REST API for restaurant management using flask_restful. In-memory storage with CRUD operations."
+    doc_path: "docs/features/rest-api.md"
+    priority: "high"
+    
+  flask-apps:
+    name: "Flask Applications Collection"
+    description: "Collection of all Flask-based web applications demonstrating various Flask patterns and extensions."
+    doc_path: "docs/features/flask-apps.md"
+    priority: "high"
+  
+  # FastAPI Applications
+  fastapi-crud:
+    name: "FastAPI CRUD Application"
+    description: "Modern FastAPI CRUD application with uvicorn server. Demonstrates async Python and modern API patterns."
+    doc_path: "docs/features/fastapi-crud.md"
+    priority: "high"
+    
+  fastapi-apps:
+    name: "FastAPI Applications Collection"
+    description: "Collection of FastAPI-based applications showcasing modern Python API development."
+    doc_path: "docs/features/fastapi-apps.md"
+    priority: "medium"
+  
+  # Django Applications
+  ad-search:
+    name: "Ad Search Django App"
+    description: "Django web app for finding related ads and keywords using NLTK. Demonstrates Django ORM and NLP integration."
+    doc_path: "docs/features/ad-search.md"
+    priority: "medium"
+    
+  django-apps:
+    name: "Django Applications Collection"
+    description: "Collection of Django-based web applications with full MVC architecture."
+    doc_path: "docs/features/django-apps.md"
+    priority: "medium"
+  
+  # Games
+  wordle-game:
+    name: "Wordle Implementation"
+    description: "Terminal-based Wordle word guessing game. Demonstrates string manipulation and game logic."
+    doc_path: "docs/features/wordle-game.md"
+    priority: "low"
+    
+  meteor-shooter:
+    name: "Meteor Shooter Game"
+    description: "Python arcade-style shooter game using pygame. Graphics, collision detection, and game loops."
+    doc_path: "docs/features/meteor-shooter.md"
+    priority: "low"
+    
+  number-guessing:
+    name: "Number Guessing Game"
+    description: "Classic number guessing game with difficulty levels. Demonstrates basic Python control flow."
+    doc_path: "docs/features/number-guessing.md"
+    priority: "low"
+    
+  games:
+    name: "Games Collection"
+    description: "Collection of Python games demonstrating various game development concepts."
+    doc_path: "docs/features/games.md"
+    priority: "low"
+  
+  # SQLite Applications
+  freight-manager:
+    name: "Freight Manager"
+    description: "SQLite database application for freight and box management. Demonstrates database schema design and queries."
+    doc_path: "docs/features/freight-manager.md"
+    priority: "medium"
+    
+  library-system:
+    name: "Library Management System"
+    description: "Library management system with book tracking and user management. SQLite database integration."
+    doc_path: "docs/features/library-system.md"
+    priority: "medium"
+    
+  sqlite-apps:
+    name: "SQLite Applications Collection"
+    description: "Applications demonstrating SQLite database usage with Python."
+    doc_path: "docs/features/sqlite-apps.md"
+    priority: "medium"
+  
+  # API Integrations
+  nasa-api:
+    name: "NASA Images API"
+    description: "NASA API integration for fetching space images and astronomy data."
+    doc_path: "docs/features/nasa-api.md"
+    priority: "low"
+    
+  reddit-api:
+    name: "Reddit API Integration"
+    description: "Reddit API integration for fetching posts and subreddit data."
+    doc_path: "docs/features/reddit-api.md"
+    priority: "low"
+    
+  crypto-tracker:
+    name: "Cryptocurrency Tracker"
+    description: "Real-time cryptocurrency price tracking using external APIs."
+    doc_path: "docs/features/crypto-tracker.md"
+    priority: "low"
+    
+  news-app:
+    name: "Country News App"
+    description: "News aggregation app using news APIs."
+    doc_path: "docs/features/news-app.md"
+    priority: "low"
+    
+  api-integrations:
+    name: "API Integrations Collection"
+    description: "Collection of projects demonstrating various API integrations and data fetching."
+    doc_path: "docs/features/api-integrations.md"
+    priority: "medium"
+  
+  # Web Scraping
+  github-scraper:
+    name: "GitHub Repository Scraper"
+    description: "Web scraping tool for extracting GitHub repository information."
+    doc_path: "docs/features/github-scraper.md"
+    priority: "low"
+    
+  finance-scraper:
+    name: "Google Finance Scraper"
+    description: "Web scraper for Google Finance data extraction."
+    doc_path: "docs/features/finance-scraper.md"
+    priority: "low"
+    
+  url-scraper:
+    name: "URL Scraper"
+    description: "General purpose URL content scraper."
+    doc_path: "docs/features/url-scraper.md"
+    priority: "low"
+    
+  web-scraping:
+    name: "Web Scraping Collection"
+    description: "Collection of web scraping projects using BeautifulSoup and requests."
+    doc_path: "docs/features/web-scraping.md"
+    priority: "low"
+  
+  # Data & Algorithms
+  data-structures:
+    name: "Data Structures & Algorithms"
+    description: "Python implementations of common data structures and algorithms."
+    doc_path: "docs/features/data-structures.md"
+    priority: "high"
+    
+  encryption:
+    name: "Encryption Algorithms"
+    description: "Classical and modern encryption algorithm implementations."
+    doc_path: "docs/features/encryption.md"
+    priority: "low"
+    
+  algorithms:
+    name: "Algorithms Collection"
+    description: "Collection of algorithm implementations and problem solutions."
+    doc_path: "docs/features/algorithms.md"
+    priority: "medium"
+  
+  # Utilities
+  auth-system:
+    name: "Authentication System"
+    description: "User authentication and login system implementation."
+    doc_path: "docs/features/auth-system.md"
+    priority: "medium"
+    
+  cash-register:
+    name: "Cash Register System"
+    description: "Cash register simulation with OOP design principles."
+    doc_path: "docs/features/cash-register.md"
+    priority: "low"
+    
+  blockchain-demo:
+    name: "Blockchain Demo"
+    description: "Basic blockchain implementation demonstrating distributed ledger concepts."
+    doc_path: "docs/features/blockchain-demo.md"
+    priority: "low"
+    
+  matrix-screensaver:
+    name: "Matrix Terminal Screensaver"
+    description: "Terminal-based Matrix-style screensaver animation."
+    doc_path: "docs/features/matrix-screensaver.md"
+    priority: "low"
+    
+  utilities:
+    name: "Utilities Collection"
+    description: "Collection of utility scripts and tools."
+    doc_path: "docs/features/utilities.md"
+    priority: "low"
+
+# Unmapped File Handling
+unmapped_files:
+  strategy: "suggest_new_feature"
+  min_changes_threshold: 3
+  similarity_threshold: 0.75
+
+# Multi-feature PR Handling
+multi_feature_strategy:
+  max_features_per_pr: 5
+  semantic_grouping: true
+
+# Versioning
+versioning:
+  strategy: "auto-detect"
+  changelog_sections:
+    - "Features"
+    - "Bug Fixes"
+    - "Documentation"
+    - "Breaking Changes"
+    - "Deprecations"
+
+# AI Configuration
+ai:
+  provider: "anthropic"
+  model: "claude-3-5-sonnet-20241022"
+  max_tokens_per_request: 4096
+  temperature: 0.3
+
+# Docs Sync Configuration
+docs_sync:
+  target_repo: "kumar-tinkesh/python-projects-docs"
+  target_branch: "main"
+  create_prs: true
+  auto_merge_threshold: "low_impact"
+  path_mapping:
+    "docs/generated/features/": "docs/features/"
+    "docs/generated/api/": "docs/api-reference/"
+    "CHANGELOG.md": "docs/changelogs/unreleased.md"

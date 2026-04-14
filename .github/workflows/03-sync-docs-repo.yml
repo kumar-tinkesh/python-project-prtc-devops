@@ -1,0 +1,199 @@
+name: 03 - Sync to Documentation Repository
+
+on:
+  workflow_run:
+    workflows: ["02 - AI Documentation Generation"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Target docs repository (owner/repo)'
+        required: true
+
+env:
+  DOCS_REPO: "${{ vars.DOCS_REPO || github.repository_owner }}/docs-repo"
+
+jobs:
+  sync-docs:
+    name: Sync Documentation to Docs Repo
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout main repo
+        uses: actions/checkout@v4
+      
+      - name: Determine target repo
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "repo=${{ github.event.inputs.target_repo }}" >> $GITHUB_OUTPUT
+          else
+            echo "repo=${{ env.DOCS_REPO }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Checkout docs repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.target.outputs.repo }}
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: docs-repo
+          fetch-depth: 0
+      
+      - name: Download generated docs
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-documentation
+          path: ./generated
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      
+      - name: Sync files locally
+        id: sync
+        run: |
+          mkdir -p docs-repo/docs/features
+          mkdir -p docs-repo/docs/api-reference
+          mkdir -p docs-repo/docs/changelogs
+          
+          # Copy feature docs
+          if [ -d "docs/generated/features" ]; then
+            cp -r docs/generated/features/* docs-repo/docs/features/ 2>/dev/null || true
+          fi
+          
+          # Copy API docs
+          if [ -d "docs/generated/api" ]; then
+            cp -r docs/generated/api/* docs-repo/docs/api-reference/ 2>/dev/null || true
+          fi
+          
+          # Copy changelog
+          if [ -f "generated/CHANGELOG.md" ]; then
+            cp generated/CHANGELOG.md docs-repo/docs/changelogs/unreleased.md
+          elif [ -f "CHANGELOG.md" ]; then
+            cp CHANGELOG.md docs-repo/docs/changelogs/unreleased.md
+          fi
+          
+          # Generate timestamp
+          echo "sync_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+          echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "source_repo=${{ github.repository }}" >> $GITHUB_OUTPUT
+      
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          echo "🔍 Checking required secrets and variables..."
+          
+          MISSING=""
+          
+          if [ -z "${{ secrets.DOCS_REPO_TOKEN }}" ]; then
+            echo "❌ Missing secret: DOCS_REPO_TOKEN"
+            MISSING="${MISSING}DOCS_REPO_TOKEN "
+          else
+            echo "✅ Secret found: DOCS_REPO_TOKEN"
+          fi
+          
+          if [ -n "$MISSING" ]; then
+            echo ""
+            echo "❌ ERROR: Missing required secrets: $MISSING"
+            echo "Please add these secrets at:"
+            echo "https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+          
+          echo "✅ All required secrets found"
+      
+      - name: Log sync start
+        run: |
+          echo "🔄 Starting documentation sync..."
+          echo "Source repo: ${{ github.repository }}"
+          echo "Target repo: ${{ steps.target.outputs.repo }}"
+          echo "Commit SHA: ${{ github.sha }}"
+      
+      - name: Create branch and PR in docs repo
+        id: create-pr
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_REPO_TOKEN }}
+        run: |
+          cd docs-repo
+          
+          # Create unique branch name
+          BRANCH_NAME="auto-docs-update-$(date -u +%Y%m%d-%H%M%S)-$(echo ${{ github.sha }} | cut -c1-7)"
+          echo "📁 Creating branch: $BRANCH_NAME"
+          git checkout -b "$BRANCH_NAME"
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if there are changes
+          if git diff --quiet HEAD; then
+            echo "ℹ️ No changes to sync - documentation is up to date"
+            echo "pr_created=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "📝 Changes detected, committing..."
+          
+          # Stage and commit with single-line message
+          git add -A
+          COMMIT_MSG="docs: Update from ${{ github.repository }}@${{ github.sha }} at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git commit -m "$COMMIT_MSG"
+          
+          echo "📤 Pushing branch..."
+          git push origin "$BRANCH_NAME"
+          
+          # Create PR using file for body
+          echo "Creating pull request..."
+          PR_FILE=$(mktemp)
+          cat > "$PR_FILE" << 'PRBODY'
+          ## Automated Documentation Update
+
+          This PR contains automatically generated documentation updates.
+
+          ### Source
+          - Repository: ${{ github.repository }}
+          - Commit: ${{ github.sha }}
+
+          ### Review Checklist
+          - [ ] Technical accuracy verified
+          - [ ] User guide clarity checked
+          - [ ] Links and formatting validated
+
+          ---
+          *Auto-generated by documentation pipeline*
+          PRBODY
+          
+          PR_URL=$(gh pr create \
+            --title "docs: Automated update from ${{ github.repository }}" \
+            --body-file "$PR_FILE" \
+            --base main \
+            --head "$BRANCH_NAME" 2>&1 || echo "")
+          
+          rm -f "$PR_FILE"
+          
+          if [ -n "$PR_URL" ] && echo "$PR_URL" | grep -q "https://github.com"; then
+            echo "✅ PR created: $PR_URL"
+            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+            echo "pr_created=true" >> $GITHUB_OUTPUT
+            echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Failed to create PR"
+            echo "Output: $PR_URL"
+            echo "pr_created=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Post summary
+        run: |
+          echo "## 📤 Documentation Sync" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.create-pr.outputs.pr_created }}" = "true" ]; then
+            echo "✅ Pull request created successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**PR URL:** ${{ steps.create-pr.outputs.pr_url }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Branch:** ${{ steps.create-pr.outputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No pull request created (no changes or error occurred)" >> $GITHUB_STEP_SUMMARY
+          fi
