@@ -1,0 +1,150 @@
+name: 02 - AI Documentation Generation
+
+on:
+  workflow_run:
+    workflows: ["01 - Feature Detection & Analysis"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      feature_report_artifact:
+        description: 'Feature report artifact ID'
+        required: true
+      dry_run:
+        description: 'Dry run mode (no commits)'
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: "3.11"
+  ANTHROPIC_MODEL: "claude-3-5-sonnet-20241022"
+
+jobs:
+  generate-docs:
+    name: Generate Documentation with Claude
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Download feature detection report
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: feature-detection-report
+          path: ./reports
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      
+      - name: Use provided report
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          mkdir -p reports
+          echo "Using manually provided report"
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install pyyaml requests anthropic
+      
+      - name: Generate technical documentation
+        id: gen-tech-docs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          mkdir -p docs/generated
+          
+          if [ ! -f reports/feature_report.json ]; then
+            echo "No feature report found. Skipping doc generation."
+            echo "generated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          python .github/scripts/generate-tech-docs.py \
+            --report reports/feature_report.json \
+            --output docs/generated/ \
+            --config docs/.ai-docs-config.yml
+          
+          echo "Generated technical docs:"
+          ls -la docs/generated/ 2>/dev/null || echo "No docs generated"
+          echo "generated=true" >> $GITHUB_OUTPUT
+      
+      - name: Generate user guides
+        id: gen-user-guides
+        if: steps.gen-tech-docs.outputs.generated == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python .github/scripts/generate-user-guides.py \
+            --report reports/feature_report.json \
+            --output docs/generated/user-guides/ \
+            --config docs/.ai-docs-config.yml
+      
+      - name: Update changelog
+        id: update-changelog
+        if: steps.gen-tech-docs.outputs.generated == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python .github/scripts/update-changelog.py \
+            --report reports/feature_report.json \
+            --changelog CHANGELOG.md \
+            --config docs/.ai-docs-config.yml || true
+      
+      - name: Commit documentation changes
+        id: commit
+        if: steps.gen-tech-docs.outputs.generated == 'true' && github.event.inputs.dry_run != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add docs/generated/ 2>/dev/null || true
+          git add CHANGELOG.md 2>/dev/null || true
+          
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit"
+            echo "committed=false" >> $GITHUB_OUTPUT
+          else
+            COMMIT_MSG="docs: Auto-update documentation"
+            if [ "${{ github.event_name }}" = "workflow_run" ]; then
+              COMMIT_MSG="docs: Auto-update documentation from workflow run ${{ github.event.workflow_run.id }}"
+            fi
+            
+            git commit -m "$COMMIT_MSG"
+            git push
+            echo "committed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload generated documentation
+        if: steps.commit.outputs.committed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-documentation
+          path: |
+            docs/generated/
+            CHANGELOG.md
+          retention-days: 7
+      
+      - name: Post summary
+        run: |
+          echo "## 🤖 AI Documentation Generation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.gen-tech-docs.outputs.generated }}" = "true" ]; then
+            echo "✅ Technical documentation generated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No documentation generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ steps.commit.outputs.committed }}" = "true" ]; then
+            echo "✅ Changes committed to repository" >> $GITHUB_STEP_SUMMARY
+          fi
