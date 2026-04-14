@@ -12,7 +12,6 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, os.path.dirname(__file__))
 from claude_client import ClaudeDocumentationClient, DocumentationRequest
 
 

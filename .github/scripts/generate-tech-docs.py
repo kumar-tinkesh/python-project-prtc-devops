@@ -12,7 +12,7 @@ from pathlib import Path
 
 import yaml
 
-sys.path.insert(0, os.path.dirname(__file__))
+# Import from same directory
 from claude_client import ClaudeDocumentationClient, DocumentationRequest
 
 
