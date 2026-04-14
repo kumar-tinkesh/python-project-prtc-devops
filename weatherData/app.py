@@ -60,7 +60,7 @@ def get_weather_data(city_name, api_key):
 if __name__=="__main__":
     app.run(debug=True)
 
-# To Trigger Other Workflows
-# Add secrets (ANTHROPIC_API_KEY, DOCS_REPO_TOKEN)
-# Merge your test PR to main with code changes
-# The doc automation will run automatically
+# To Trigger Other Workflow
+# Add secrets like (ANTHROPIC_API_KEY, DOCS_REPO_TOKEN)
+# Merge your test PR to main with code changed
+# The doc automation will run automatically ok.
