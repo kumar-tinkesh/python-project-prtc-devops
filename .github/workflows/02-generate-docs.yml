@@ -34,12 +34,25 @@ jobs:
       
       - name: Download feature detection report
         if: github.event_name == 'workflow_run'
+        id: download-report
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: feature-detection-report
           path: ./reports
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.workflow_run.id }}
+      
+      - name: Check if report exists
+        id: check-report
+        run: |
+          if [ -f "reports/feature_report.json" ]; then
+            echo "✅ Feature report found"
+            echo "has_report=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ No feature report found - skipping doc generation"
+            echo "has_report=false" >> $GITHUB_OUTPUT
+          fi
       
       - name: Use provided report
         if: github.event_name == 'workflow_dispatch'
@@ -74,6 +87,7 @@ jobs:
       
       - name: Generate technical documentation
         id: gen-tech-docs
+        if: steps.check-report.outputs.has_report == 'true' || github.event_name == 'workflow_dispatch'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -97,7 +111,7 @@ jobs:
       
       - name: Generate user guides
         id: gen-user-guides
-        if: steps.gen-tech-docs.outputs.generated == 'true'
+        if: (steps.gen-tech-docs.outputs.generated == 'true') && (steps.check-report.outputs.has_report == 'true' || github.event_name == 'workflow_dispatch')
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -108,7 +122,7 @@ jobs:
       
       - name: Update changelog
         id: update-changelog
-        if: steps.gen-tech-docs.outputs.generated == 'true'
+        if: (steps.gen-tech-docs.outputs.generated == 'true') && (steps.check-report.outputs.has_report == 'true' || github.event_name == 'workflow_dispatch')
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
