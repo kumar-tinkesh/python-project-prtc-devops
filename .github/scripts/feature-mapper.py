@@ -6,12 +6,51 @@ Maps changed files to features using configuration rules.
 
 import argparse
 import fnmatch
+import glob
 import json
 import os
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+
+
+def glob_match(path: str, pattern: str) -> bool:
+    """Match path against glob pattern with ** support."""
+    # Convert glob pattern to regex
+    if '**' in pattern:
+        # ** matches any number of directory levels
+        # * matches anything except /
+        # ? matches single char
+        
+        # Manual regex conversion to avoid over-escaping
+        regex = ''
+        i = 0
+        while i < len(pattern):
+            if pattern[i:i+2] == '**':
+                regex += '.*'
+                i += 2
+            elif pattern[i] == '*':
+                regex += '[^/]*'
+                i += 1
+            elif pattern[i] == '?':
+                regex += '.'
+                i += 1
+            elif pattern[i] == '/':
+                regex += '/'
+                i += 1
+            elif pattern[i] == '.':
+                regex += r'\.'
+                i += 1
+            else:
+                regex += re.escape(pattern[i])
+                i += 1
+        
+        return bool(re.match('^' + regex + '$', path))
+    else:
+        # Use standard fnmatch for simple patterns
+        return fnmatch.fnmatch(path, pattern)
 
 import yaml
 
@@ -86,7 +125,7 @@ class FeatureMapper:
             mapped = False
             
             for pattern, feature_ids in self.pattern_map:
-                if fnmatch.fnmatch(file_path, pattern):
+                if glob_match(file_path, pattern):
                     for feat_id in feature_ids:
                         if feat_id in self.features:
                             feature_files[feat_id].add(file_path)
