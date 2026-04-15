@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request
+from flask import Flask, render_template, request, jsonify
 import requests
 import configparser
 
@@ -55,6 +55,29 @@ def get_weather_data(city_name, api_key):
 
 
 
+
+
+@app.route('/api/weather/<city>', methods=['GET'])
+def api_weather(city):
+    """
+    REST API endpoint to get weather data for a city.
+    Returns JSON response with current weather.
+    """
+    api_key = get_api_key()
+    data = get_weather_data(city, api_key)
+    
+    if isinstance(data, dict) and 'main' in data:
+        return jsonify({
+            'city': data['name'],
+            'country': data['sys']['country'],
+            'temperature': data['main']['temp'],
+            'feels_like': data['main']['feels_like'],
+            'humidity': data['main']['humidity'],
+            'weather': data['weather'][0]['main'],
+            'description': data['weather'][0]['description']
+        })
+    else:
+        return jsonify({'error': f'Could not fetch weather for {city}'}), 404
 
 
 if __name__=="__main__":
